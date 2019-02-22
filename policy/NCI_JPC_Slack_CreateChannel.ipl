@@ -1,0 +1,59 @@
+// Create a slack channel
+
+// oath token: <your Slack oauth token>
+// channelName = "NOI";
+
+EventContainer.CreateSlackChannel = 70;
+ReturnEvent(EventContainer);
+
+slackToken = "<your slack oauth token>";
+
+if(EventContainer.TTNumber <> "")
+{
+     channelName="NOI-Incident-" + EventContainer.TTNumber;
+}
+else
+{
+     channelName = "NOI-" + EventContainer.Node;
+}
+
+data = '{"name":"' + channelName + '","token":"' + slackToken + '"}';
+
+HTTPHost="chrononaut-demo.slack.com";
+HTTPPort=443;
+Protocol="https";
+Path="/api/channels.create";    
+ChannelKey = "";
+
+ChannelKey=""; 
+Method="POST";
+AuthHandlerActionTreeName="";
+FormParameters=null;
+FilesToSend=null;
+
+HeadersToSend = NewObject();
+HeadersToSend.Authorization = "Bearer " + slackToken;
+HttpProperties = NewObject();
+HttpProperties.ContentType="application/json; charset=utf-8"; 
+HttpProperties.Content = data;
+
+slackReturn=GetHTTP(HTTPHost, HTTPPort, Protocol, Path, ChannelKey, Method, AuthHandlerActionTreeName, FormParameters, FilesToSend, HeadersToSend, HttpProperties);
+Log(slackReturn);
+Log(ThePage);// "ThePage" is useful for diagnosing http errors
+
+slackResult=ParseJSON(slackReturn);
+
+myChannel = slackResult.channel.id;
+log("JPCLOG: Channel is: " + myChannel);
+
+EventContainer.SlackChannel = myChannel;
+
+//
+// Set CreateSlackChannel to 144 to set the Purpose
+//
+EventContainer.CreateSlackChannel = 144;
+@JournalEntry = "Visit this war room at: https://chrononaut-demo.slack.com/messages/" + myChannel + "/details/";
+
+ReturnEvent(EventContainer);
+
+

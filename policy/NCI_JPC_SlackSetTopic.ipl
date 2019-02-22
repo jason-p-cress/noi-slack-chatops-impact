@@ -1,0 +1,66 @@
+// Sets the topic on a Slack channel to the TTNumber, and links the incident record
+// channelName = "NOI";
+
+log("JPCLOG: Begin SlackSetTopic policy");
+
+EventContainer.CreateSlackChannel = 70;
+ReturnEvent(EventContainer);
+
+slackToken = "<your slack oauth token>"
+
+
+
+slackChannel = EventContainer.SlackChannel;
+
+incidentNumber = EventContainer.TTNumber;
+incidentLink = "<http://icd76demo/maximo/ui/?event=loadapp&value=incident&uisessionid=13&additionalevent=useqbe&additionaleventvalue=ticketid=" + incidentNumber + "|" + incidentNumber + ">";
+businessServices = "Eday Trader\n\nPayroll";
+
+
+channelTopic = "Incident #" + incidentLink;
+
+log("JPCLOG: Channel topic before truck: " + channelTopic);
+
+
+// Slack has a 250 character limitation for the Channel Purpose text. Hence, we need to truncate it to 250 if greater than the limitation because the Slack api will post
+// a failure instead of truncate the payload
+
+if(Length(channelTopic) > 250)
+{
+    log("JPCLOG: channel topic must be truncated");
+    truncatedChannelTopic =  Substring(channelTopic, 0, 249);
+    channelTopic = truncatedChannelTopic;
+}
+
+
+log("JPCLOG: Channel topic after trunc: " + channelTopic);
+
+data = '{"channel":"' + slackChannel + '","token":"' + slackToken + '", "topic":"' + channelTopic + '"}';
+
+HTTPHost="chrononaut-demo.slack.com";
+HTTPPort=443;
+Protocol="https";
+Path="/api/channels.setTopic";    
+ChannelKey = "";
+
+ChannelKey=""; 
+Method="POST";
+AuthHandlerActionTreeName="";
+FormParameters=null;
+FilesToSend=null;
+
+HeadersToSend = NewObject();
+HeadersToSend.Authorization = "Bearer " + slackToken;
+HttpProperties = NewObject();
+HttpProperties.ContentType="application/json; charset=utf-8"; 
+HttpProperties.Content = data;
+
+// Set the purpose
+slackReturn=GetHTTP(HTTPHost, HTTPPort, Protocol, Path, ChannelKey, Method, AuthHandlerActionTreeName, FormParameters, FilesToSend, HeadersToSend, HttpProperties);
+
+Log(slackReturn);
+Log(ThePage);// "ThePage" is useful for diagnosing http errors
+
+slackResult=ParseJSON(slackReturn);
+
+//ReturnEvent(EventContainer);

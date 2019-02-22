@@ -1,0 +1,53 @@
+//////////////////////////////////////////////////
+//
+// Configure REST call options
+// resturl: http://jsonplaceholder.typicode.com/comments
+//
+//////////////////////////////////////////////////
+
+HTTPHost="jsonplaceholder.typicode.com";
+HTTPPort=80;
+Protocol="http";
+Path="/comments/4";    
+Method="GET";
+ChannelKey="";
+
+HeadersToSend = NewObject();
+HttpProperties = NewObject();
+HttpProperties.ContentType="application/json; charset=utf-8"; 
+HttpProperties.Content = data;
+
+//////////////////////////////////////////////////
+//
+// Initiate REST call to get event
+//
+//////////////////////////////////////////////////
+
+restReturn=GetHTTP(HTTPHost, HTTPPort, Protocol, Path, ChannelKey, Method, AuthHandlerActionTreeName, FormParameters, FilesToSend, HeadersToSend, HttpProperties);
+
+//////////////////////////////////////////////////
+//
+// Parse JSON response
+//
+//////////////////////////////////////////////////
+
+event = parseJson(restReturn);
+
+//////////////////////////////////////////////////
+//
+// Create an event
+//
+//////////////////////////////////////////////////
+   
+   myEvent = NewEvent(OMNIbusEventReader);
+   myEvent.EventReaderName = "OMNIbusEventReader";
+   myEvent.Severity = 5;
+   myEvent.Identifier = event.email + event.name;
+   myEvent.Summary = event.body;
+   myEvent.Node = event.email;
+   myEvent.FirstOccurrence = getdate();
+   myEvent.LastOccurrence = getdate();
+   returnEvent(myEvent);
+
+
+

@@ -1,0 +1,45 @@
+// Deletes a Slack channel
+
+// oauth token: <your Slack oauth token>
+
+log("JPCLOG: Starting JPC_Delete_SlackChannel policy...");
+
+slackToken = "<your slack oauth token>"
+
+channelName="NOI-Incident-" + EventContainer.TTNumber; 
+channelId = EventContainer.SlackChannel;
+
+data = '{"channel":"' + channelId + '","token":"' + slackToken + '"}';
+
+HTTPHost="chrononaut-demo.slack.com";
+HTTPPort=443;
+Protocol="https";
+Path="/api/channels.delete";    
+ChannelKey = "";
+
+ChannelKey=""; 
+Method="POST";
+AuthHandlerActionTreeName="";
+FormParameters=null;
+FilesToSend=null;
+
+HeadersToSend = NewObject();
+HeadersToSend.Authorization = "Bearer " + slackToken;
+HttpProperties = NewObject();
+HttpProperties.ContentType="application/json; charset=utf-8"; 
+HttpProperties.Content = data;
+
+slackReturn=GetHTTP(HTTPHost, HTTPPort, Protocol, Path, ChannelKey, Method, AuthHandlerActionTreeName, FormParameters, FilesToSend, HeadersToSend, HttpProperties);
+Log(slackReturn);
+Log(ThePage);// "ThePage" is useful for diagnosing http errors
+
+slackResult=ParseJSON(slackReturn);
+
+myChannel = slackResult.channel.id;
+log("JPCLOG: Channel is: " + myChannel);
+
+EventContainer.SlackChannel = "Deleted: " + channelId;
+EventContainer.CreateSlackChannel = 70;
+
+ReturnEvent(EventContainer);
+
